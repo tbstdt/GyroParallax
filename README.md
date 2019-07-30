@@ -1,2 +1,2 @@
 # GyroParallax
-Simpe paralax effect using gyroscope
+Simpe paralax effect in Unity using gyroscope
