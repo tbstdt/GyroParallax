@@ -34,3 +34,9 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+
+Logs/
+
+\.idea/\.idea\.GyroParallax/\.idea/
+
+\.idea/\.idea\.GyroParallax/
