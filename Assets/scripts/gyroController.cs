@@ -53,7 +53,6 @@ public class gyroController : MonoBehaviour {
 
 	private void TouchMover()
 	{		
-		isGyroEnabled = false;
 		xPos += Input.GetTouch(0).deltaPosition.x * touchSpeed;
 		yPos += Input.GetTouch(0).deltaPosition.y * touchSpeed;	
 
