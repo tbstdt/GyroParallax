@@ -3,22 +3,69 @@ using UnityEngine;
 
 public class gyroController : MonoBehaviour {
 
-	private bool isGyroEnabled;
+		private bool isGyroEnabled;
 	private Gyroscope gyro;
-	private Quaternion startRotation;
-	
+	private Quaternion startRot;
+	private Quaternion rotSaver;
+
 	[Range(0,1)]
-	public float Accuracy = 0.2f;
-	[Range(5,20)]
-	public float MaxAnglie = 10f;
+	public float speed = 0.1f;
 	[Range(0,1)]
-	public float Shift = 1f;
-	
-	public GameObject Rotator;
-	
+	public float touchSpeed = 0.02f;
+
+
+	private float xPos;
+	private float yPos;
+
+	public float maxR = 4f;
+	public float maxU = 2f;
+	public float minD = -2f;
+	public float minL = -4f;
+
 	void Start ()
 	{
 		isGyroEnabled = EnableGyro();
+		startRot = transform.rotation;
+	}
+
+
+	private void FixedUpdate()
+	{
+		if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Moved) 
+		{
+			TouchMover();
+		}
+		else if (isGyroEnabled) GyroMover();
+	}
+
+	private void DoRotate(float x, float y)
+	{
+	    xPos = Mathf.Clamp(x, minL, maxR);
+		yPos = Mathf.Clamp(y, minD, maxU);		
+
+		var Y = Quaternion.AngleAxis(-xPos, Vector3.up);
+		var X = Quaternion.AngleAxis(yPos, Vector3.right);
+
+		rotSaver = startRot * Y * X;
+		transform.rotation = rotSaver;
+	}
+
+
+	private void TouchMover()
+	{		
+		isGyroEnabled = false;
+		xPos += Input.GetTouch(0).deltaPosition.x * touchSpeed;
+		yPos += Input.GetTouch(0).deltaPosition.y * touchSpeed;	
+
+		DoRotate(x,y);
+	}
+
+	private void GyroMover()
+	{
+		xPos += Input.gyro.rotationRateUnbiased.y * speed;
+		yPos += Input.gyro.rotationRateUnbiased.x * speed;
+
+		DoRotate(x,y);
 	}
 
 	private bool EnableGyro()
@@ -27,40 +74,9 @@ public class gyroController : MonoBehaviour {
 		{
 			gyro = Input.gyro;
 			gyro.enabled = true;
-			startRotation = Rotator.transform.rotation;
 			return true;
 		}
 		return false;
-	}
-
-	private void Update()
-	{
-		var rotate = Vector3.zero;
-		if (!isGyroEnabled)
-		{
-			rotate = new Vector3(Input.gyro.rotationRateUnbiased.y,Input.gyro.rotationRateUnbiased.x, 0);
-		}
-		else
-		{
-			rotate = new Vector3(Input.acceleration.x, -Input.acceleration.y, 0);
-		}
-		
-		RotateAndShift(rotate);
-		CheckBounds(rotate);
-	}
-	
-	
-	private void RotateAndShift(Vector3 rotate)
-	{
-		Rotator.transform.Rotate(rotate * Accuracy);
-		Rotator.transform.position += rotate * Shift;
-	}
-
-	private void CheckBounds(Vector3 rotate)
-	{
-		var angle = Quaternion.Angle(startRotation, Rotator.transform.rotation);
-		if (angle > MaxAnglie)
-			RotateAndShift(-rotate);
 	}
 
 	
@@ -71,6 +87,5 @@ public class gyroController : MonoBehaviour {
 		style.fontSize = 36;
 		style.normal.textColor = Color.white;
 		GUI.Label(new Rect(10, 10, 200, 50),  Input.acceleration.ToString(), style);
-		GUI.Label(new Rect(10, 70, 200, 50),  Input.gyro.rotationRateUnbiased.ToString(), style);
 	}
 }
